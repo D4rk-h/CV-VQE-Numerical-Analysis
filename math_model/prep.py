@@ -51,9 +51,9 @@ def build_Z(r, N):
         r=10^(-rdB/20)
 
     """
-    r = np.full(N, 0.5) # fixed constants for testing
-    #r_db = np.random.uniform(0, 10, N)
-    #r = 10 ** (-r_db / 20)
+    #r = np.full(N, 0.5) # fixed constants for testing
+    r_db = np.random.uniform(0, 10, N)
+    r = 10 ** (-r_db / 20)
     return np.diag([*r, *[1/ri for ri in r]])
 
 def build_cov(O, Z):

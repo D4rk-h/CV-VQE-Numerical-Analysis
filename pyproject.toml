@@ -7,6 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "matplotlib>=3.10.8",
     "numpy>=2.4.4",
+    "plotly>=6.6.0",
     "scipy>=1.17.1",
     "strawberryfields>=0.23.0",
 ]
