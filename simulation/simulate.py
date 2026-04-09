@@ -2,6 +2,7 @@ import numpy as np
 from model.math.hamiltonian import H_BoseHubbard as H_W
 from model.math.polynomial import compute_P_recursive
 
+
 def run_simulation(samples, V, L, N, j):
     P = compute_P_recursive(samples, V, L, j)
     H_symbols = H_W(samples=samples, N=N)
