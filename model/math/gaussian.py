@@ -81,3 +81,8 @@ def build_g_wigner(xi: np.ndarray, N):
     term2 = -xi.T @ V_inv @ xi
 
     return term1 * np.exp(term2)
+
+def build_weyl_symbol(xi: np.ndarray, N):
+    x = xi[:N]
+    p = xi[N:]
+    return (x + 1j*p) / np.sqrt(2)
