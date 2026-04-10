@@ -28,7 +28,7 @@ def build_O(N):
     U = build_U(N)
     return np.block([[np.real(U), -np.imag(U)], [np.imag(U), np.real(U)]])
 
-def build_Z(r, N):
+def build_Z(N):
     """
     Z is the squeezing matrix, defined as:
 
@@ -72,17 +72,12 @@ def build_displacement(N):
     """
     return np.zeros(2*N)
 
-def sample_xi(xi_mean, V, n_samples=50_000):
-    """
-    Sample xi from a normal distribution with mean 0 and variance 1.
-    """
-    grad1 = np.random.multivariate_normal(xi_mean, V/2, n_samples)
+def build_g_wigner(xi: np.ndarray, N):
+    V = build_cov(build_O(N), build_Z(N))
+    V_inv = np.linalg.inv(V)
+    V_det = np.linalg.det(V)
 
-    # Uncomment to test mean and std of the generated samples
-    #grad2 = np.random.multivariate_normal(xi_mean, V, n_samples)
-    #print("mean 1:", np.mean(grad1, axis=0))
-    #print("std 1: ", np.std(grad1, axis=0))
-    #print("mean 2:", np.mean(grad2, axis=0))
-    #print("std 2: ", np.std(grad2, axis=0))
-    return grad1
+    term1 = 1 / (((np.pi)**N) * np.sqrt(V_det))
+    term2 = -xi.T @ V_inv @ xi
 
+    return term1 * np.exp(term2)
