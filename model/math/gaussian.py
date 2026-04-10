@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import expm
 from scipy.stats import unitary_group
 
 def build_U(N):
@@ -51,7 +52,6 @@ def build_Z(N):
         r=10^(-rdB/20)
 
     """
-    #r = np.full(N, 0.5) # fixed constants for testing
     r_db = np.random.uniform(0, 10, N)
     r = 10 ** (-r_db / 20)
     return np.diag([*r, *[1/ri for ri in r]])
@@ -72,17 +72,74 @@ def build_displacement(N):
     """
     return np.zeros(2*N)
 
-def build_g_wigner(xi: np.ndarray, N):
-    V = build_cov(build_O(N), build_Z(N))
+def build_g_wigner(xi: np.ndarray, O, Z, N):
+    V = build_cov(O, Z) + 1e-8 * np.eye(2 * N)
     V_inv = np.linalg.inv(V)
     V_det = np.linalg.det(V)
+    if not np.isfinite(V_det) or V_det <= 0:
+        return np.zeros(xi.shape[1])
+    term1 = 1.0 / ((np.pi ** N) * np.sqrt(V_det))
+    term2 = -np.einsum('ij,ij->j', xi, V_inv @ xi)
+    return term1 * np.exp(np.clip(term2, -500, 0))
 
-    term1 = 1 / (((np.pi)**N) * np.sqrt(V_det))
-    term2 = -xi.T @ V_inv @ xi
-
-    return term1 * np.exp(term2)
-
-def build_weyl_symbol(xi: np.ndarray, N):
+def build_alpha(xi: np.ndarray):
+    """
+    xi is expected to be a vector of shape (2*N,)
+    Returns a vector of complex amplitudes alpha of shape (N,)
+    """
+    N = xi.shape[0] // 2
     x = xi[:N]
     p = xi[N:]
-    return (x + 1j*p) / np.sqrt(2)
+    return (x + 1j * p) / np.sqrt(2)
+
+def _skew_hermitian_to_unitary(s: np.ndarray, N: int) -> np.ndarray:
+    """
+    Build U ∈ U(N) via U = exp(S) where S is skew-Hermitian.
+ 
+    Parameter layout in s (length = N*(N-1)/2 + N = N²  real numbers total,
+    which correctly counts dim U(N) = N²):
+      s[0 : N*(N-1)//2]   — real off-diagonal entries  S[i,j] = -S[j,i]
+      s[N*(N-1)//2 : ]    — diagonal imaginary entries  S[i,i] = i * s[...]
+    """
+    n_off = N * (N - 1) // 2   # number of off-diagonal pairs
+    s_re  = s[:n_off]           # real off-diagonal
+    s_im  = s[n_off:2*n_off]    # imaginary off-diagonal
+    s_diag = s[2*n_off:]        # imaginary diagonal
+ 
+    S = np.zeros((N, N), dtype=complex)
+    idx = 0
+    for i in range(N):
+        for j in range(i + 1, N):
+            S[i, j] =  s_re[idx] + 1j * s_im[idx]
+            S[j, i] = -s_re[idx] + 1j * s_im[idx]
+            idx += 1
+    for i in range(N):
+        S[i, i] = 1j * s_diag[i]
+    return S
+ 
+ 
+def n_unitary_params(N: int) -> int:
+    """Number of real parameters to describe U(N): N*(N-1)/2 + N = N²."""
+    return N * N
+ 
+ 
+def unpack_params(params: np.ndarray, n_modes: int):
+    """
+    Map flat optimizer params → valid symplectic matrices (O, Z).
+ 
+    Layout (total length = n_modes + n_modes²):
+      params[:n_modes]   — log-squeezing log(r_i); r_i = exp(·) > 0
+      params[n_modes:]   — full U(N) via skew-Hermitian expm (N² params)
+ 
+    Z = diag(r_1,…,r_N, 1/r_1,…,1/r_N)
+    O = [[Re U, -Im U], [Im U, Re U]]  with U = exp(S), S skew-Hermitian
+    """
+    N = n_modes
+    r = np.exp(np.clip(params[:N], -5, 5))
+    Z = np.diag(np.concatenate([r, 1.0 / r]))
+ 
+    S = _skew_hermitian_to_unitary(params[N:], N)
+    U = expm(S)
+    O = np.block([[np.real(U), -np.imag(U)],
+                  [np.imag(U),  np.real(U)]])
+    return O, Z

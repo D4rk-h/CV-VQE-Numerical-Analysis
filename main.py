@@ -1,18 +1,38 @@
-from model.math.gaussian import build_O, build_Z, build_cov, build_displacement, sample_xi
-from simulation.simulate import run_simulation
+import numpy as np
+from optimization.LBFGSb import optimize_stornati
 
-N         = 2
-n_samples = 200_000
-t, U, mu  = 1, 1, 1
-j_mode    = 0
+def main():
+    print("| | |- Stornati Variational Optimization -| | |")
 
-O       = build_O(N)                        
-Z       = build_Z(0.5, N)                   
-V       = build_cov(O, Z)                   
-xi_mean = build_displacement(N)             
+    n_modes = 2
+    n_points = 15 # per axis; 4D grid → 15^4 = 50625 points (manageable)
+    limit = 4.0
 
-samples = sample_xi(xi_mean, V, n_samples)  
+    print("Building phase space grid...")
+    q_axis = np.linspace(-limit, limit, n_points)
+    p_axis = np.linspace(-limit, limit, n_points)
 
-Ls = [1, 2, 4, 8]
-for L_val in Ls:
-    P, energy = run_simulation(samples, V, L_val, N, j=j_mode)
+    axes = [q_axis, p_axis] * n_modes
+    mesh = np.meshgrid(*axes, indexing='ij')
+
+    xi_grid = np.array([m.ravel() for m in mesh])
+    print(f"Grid shape: {xi_grid.shape} (Dimensions: 2N x Points)")
+
+    print(f"\nStarting L-BFGS-B optimization for {n_modes} mode(s)...")
+
+    result, best_O, best_Z = optimize_stornati(xi_grid, n_modes)
+
+    if result.success:
+        print("\nOptimization Successful!")
+        print(f"Minimum Energy Found: {result.fun:.6f}")
+        print("\n--- Optimized Parameters ---")
+        r_vals = np.diag(best_Z)[:n_modes]
+        print(f"Best squeezing r = {r_vals}")
+        print(f"Best squeezing in dB = {-20*np.log10(r_vals)}")
+        print(f"Best O Matrix (2N×2N symplectic-orthogonal):\n{np.round(best_O, 4)}")
+    else:
+        print(f"\nOptimization Failed: {result.message}")
+        print(f"Best energy reached: {result.fun:.6f}")
+
+if __name__ == "__main__":
+    main()

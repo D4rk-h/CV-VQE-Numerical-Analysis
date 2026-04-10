@@ -10,4 +10,5 @@ dependencies = [
     "plotly>=6.6.0",
     "scipy>=1.17.1",
     "strawberryfields>=0.23.0",
+    "sympy>=1.14.0",
 ]
