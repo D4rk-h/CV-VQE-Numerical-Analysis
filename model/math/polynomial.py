@@ -1,8 +1,31 @@
 import numpy as np
-from model.math.gaussian import build_g_wigner, build_alpha, unpack_params
-from model.math.hamiltonian import H_BoseHubbard
-from model.math.moyal import moyal_product
+from model.math.gaussian import build_g_wigner, build_alpha
 
+
+def compute_variational_ansatz_layered(xi, dx, dp, n_modes, O, Z, L):
+    """
+    Like compute_variational_ansatz, but applies exactly L ladder steps
+    and returns a list of intermediate Wigner functions W_list[0..L].
+    W_list[0] = Gaussian baseline, W_list[ℓ] = after ℓ ladder applications.
+    """
+    W_G = build_g_wigner(xi, O, Z, n_modes)
+    W_list = [W_G.copy()]
+
+    W = W_G.copy()
+    for j in range(L):
+        mode_idx = j % n_modes
+        S_k = build_S(O, xi, mode_idx)
+        weight = np.abs(S_k) ** 2
+
+        W_unnorm = weight * W
+        K = np.sum(W_unnorm) * dx * dp
+        if np.abs(K) < 1e-300 or not np.isfinite(K):
+            W_list.append(W.copy())
+            continue
+        W = W_unnorm / K
+        W_list.append(W.copy())
+
+    return W_list
 
 def compute_variational_ansatz(xi: np.ndarray, dx, dp, n_modes, O, Z):
     W_G = build_g_wigner(xi, O, Z, n_modes)
@@ -14,7 +37,8 @@ def compute_variational_ansatz(xi: np.ndarray, dx, dp, n_modes, O, Z):
  
         W_unnorm = weight * W
  
-        K = np.sum(W_unnorm) * dx * dp
+        dV = (dx * dp) ** n_modes
+        K = np.sum(W_unnorm) * dV
         if np.abs(K) < 1e-300 or not np.isfinite(K):
             return W_G
         W = W_unnorm / K

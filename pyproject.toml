@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "jax>=0.9.2",
     "matplotlib>=3.10.8",
     "numpy>=2.4.4",
     "plotly>=6.6.0",
+    "quspin>=1.0.1",
     "scipy>=1.17.1",
     "strawberryfields>=0.23.0",
     "sympy>=1.14.0",
