@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def moyal_linear(f, gaussian_wigner, dx, dp, n_modes):
     """
      Since S_k is linear in xi the moyal product ends at first order
