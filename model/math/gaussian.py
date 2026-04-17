@@ -51,7 +51,6 @@ def build_Z(r, N):
         r=10^(-rdB/20)
 
     """
-    #r = np.full(N, 0.5) # fixed constants for testing
     r_db = np.random.uniform(0, 10, N)
     r = 10 ** (-r_db / 20)
     return np.diag([*r, *[1/ri for ri in r]])
@@ -78,3 +77,13 @@ def build_wigner(V, xi, n_modes):
     term1 = 1/(np.pi**n_modes) * (np.sqrt(V_det))
     term2 = np.exp(-xi.T * V_inv * xi)
     return term1 * term2
+
+def build_alpha_from_xi(xi):
+    N = xi.shape[0] // 2
+    x = xi[:N]
+    p = xi[N:]
+    alpha = []
+    for i in range(N):
+        alpha_i = (x[i] + 1j*p[i])/np.sqrt(2)
+        alpha.append(alpha_i)
+    return np.array(alpha)
