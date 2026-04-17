@@ -72,5 +72,9 @@ def build_displacement(N):
     """
     return np.zeros(2*N)
 
-def build_wigner(V, n_modes):
-    pass
+def build_wigner(V, xi, n_modes):
+    V_det = np.linalg.det(V)
+    V_inv = np.linalg.inv(V)
+    term1 = 1/(np.pi**n_modes) * (np.sqrt(V_det))
+    term2 = np.exp(-xi.T * V_inv * xi)
+    return term1 * term2
