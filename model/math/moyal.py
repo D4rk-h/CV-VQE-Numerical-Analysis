@@ -1,5 +1,10 @@
 import numpy as np
 
+"""
+for the moyal non linear S product 
+use Bopp shift
+"""
+
 
 def moyal_linear(f, gaussian_wigner, dx, dp, n_modes):
     """

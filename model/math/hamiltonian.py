@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def H_BoseHubbard(samples, N, t=1, U=1, mu=1):
+def h_bose_hubbard(xi, N, t=1, U=1, mu=1):
     """
     Weyl symbol of Bose-Hubbard Hamiltonian, expressed in terms 
     of the quadratures x and p, (for abreviations, we call α = (x+ip)/sqrt(2), 
@@ -19,8 +19,8 @@ def H_BoseHubbard(samples, N, t=1, U=1, mu=1):
     p: shape (n_samples, N)
 
     """
-    x = samples[:, :N]
-    p = samples[:, N:]
+    x = xi[:, :N]
+    p = xi[:, N:]
     r2 = x**2 + p**2
     hopping = np.sum(x * np.roll(x, -1, axis=1) + p * np.roll(p, -1, axis=1),axis=1)
     interaction = np.sum((r2**2) * U / 2, axis=1)
