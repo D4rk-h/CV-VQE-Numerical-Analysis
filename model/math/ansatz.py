@@ -1,5 +1,5 @@
-from math.gaussian import build_wigner
-from math.polynomial import build_S
+from model.math.gaussian import build_wigner, build_cov
+from model.math.polynomial import build_S
 import numpy as np
 
 
@@ -9,7 +9,8 @@ def compute_variational_ansatz_layered(xi, dx, dp, n_modes, O, Z, L):
     and returns a list of intermediate Wigner functions W_list[0..L].
     W_list[0] = Gaussian baseline, W_list[ℓ] = after ℓ ladder applications.
     """
-    W_G = build_wigner(xi, O, Z, n_modes)
+    V = build_cov(O, Z)
+    W_G = build_wigner(O, Z, xi, n_modes)
     W_list = [W_G.copy()]
 
     W = W_G.copy()

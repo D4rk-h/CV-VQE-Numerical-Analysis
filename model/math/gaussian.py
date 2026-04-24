@@ -71,12 +71,14 @@ def build_displacement(N):
     """
     return np.zeros(2*N)
 
-def build_wigner(V, xi, n_modes):
+def build_wigner(O, Z, xi, n_modes):
+    V = build_cov(O, Z)
     V_det = np.linalg.det(V)
     V_inv = np.linalg.inv(V)
-    term1 = 1/(np.pi**n_modes) * (np.sqrt(V_det))
-    term2 = np.exp(-xi.T * V_inv * xi)
-    return term1 * term2
+    Vx = V_inv @ xi
+    exponent = np.einsum('ij,ij->j', xi, Vx)
+    norm = 1.0 / (np.pi**n_modes * np.sqrt(V_det))
+    return norm * np.exp(-exponent)
 
 def build_alpha_from_xi(xi):
     N = xi.shape[0] // 2

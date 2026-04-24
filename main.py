@@ -20,12 +20,12 @@ def main():
     print("| | |- Stornati Variational Optimization -| | |")
 
     n_modes    = 2
-    n_points   = 15
+    n_points   = 30
     limit      = 4.0
     L_max      = 8
     n_restarts = 3
 
-    optimize_stornati(build_grid(n_modes, n_points, ))
+    optimize_stornati(build_grid(n_modes, n_points, limit), n_modes, L_max, n_restarts)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 from scipy.optimize import minimize
+from scipy.linalg import expm
 import numpy as np
 from model.math.hamiltonian import h_bose_hubbard
 from model.math.ansatz import compute_variational_ansatz_layered
-from numpy.linalg import expm
 
 
 def optimize_stornati(xi, n_modes=2, L_max=8, n_restarts=2, seed=42, U=1.0, t=1.0, mu=1.0):

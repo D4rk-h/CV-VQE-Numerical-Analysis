@@ -19,6 +19,7 @@ def h_bose_hubbard(xi, N, t=1, U=1, mu=1):
     p: shape (n_samples, N)
 
     """
+    xi = xi.T
     x = xi[:, :N]
     p = xi[:, N:]
     r2 = x**2 + p**2
